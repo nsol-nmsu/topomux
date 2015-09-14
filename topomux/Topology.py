@@ -71,3 +71,6 @@ class Topology (object):
                 for n in self.Node.nodeSet:
                         ret |= n.prefixes
                 return ret
+                
+        def getNodes(self):
+                return self.Node.nodeSet
