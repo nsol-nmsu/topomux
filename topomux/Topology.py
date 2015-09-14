@@ -18,7 +18,7 @@ class Topology (object):
                         self.labels |= set([label])
                 
                 def addPrefix(self, prefix):
-                        self.prefixes |= set([label])
+                        self.prefixes |= set([prefix])
                 
                 def getNeighbors(self, filter=None):
                         ret = set()
@@ -70,3 +70,4 @@ class Topology (object):
                 ret = set()
                 for n in self.Node.nodeSet:
                         ret |= n.prefixes
+                return ret
