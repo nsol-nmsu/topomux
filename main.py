@@ -1,5 +1,4 @@
-from Topology import Topology
-from IcnRoutes import IcnRoutes
+from topomux import Topology, IcnRoutes
 from pprint import pprint
 
 def main():
