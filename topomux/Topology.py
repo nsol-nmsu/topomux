@@ -120,6 +120,24 @@ class Topology (object):
                 """
                 return self.Node(**kwargs)
         
+        def labelAllNodes(self, label):
+                """ Adds the label to all nodes
+                """
+                for n in self.Node.nodeSet:
+                        n.addLabel(label)
+        
+        def prefixAllNodes(self, prefix):
+                """ Adds the prefix to all nodes
+                """
+                for n in self.Node.nodeSet:
+                        n.addPrefix(prefix)
+                
+        def labelAllEdges(self, label):
+                """ Assigns the label to all edges
+                """
+                for e in self.Edge.edgeSet:
+                        e.label = label
+        
         def getPrefixes(self):
                 """ Returns all prefixes served by nodes within the graph
                 """
