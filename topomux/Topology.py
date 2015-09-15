@@ -132,3 +132,26 @@ class Topology (object):
                 """ Returns the nodeSet of this graph
                 """
                 return self.Node.nodeSet
+        
+def ImportedTopology (Topology):
+        """ Used to import topologies from FNSS or NetworkX. Simply copies
+            the nodes and edges; does not import the data of nodes or
+            edges.
+        """
+        
+        def __init__(self, topo):
+                """ Constructor.
+                    topo should be a NetworkX Graph object, or some other
+                    object with compatible nodes_iter and edges_iter methods
+                """
+                super(self, Topology).__init__()
+                self._import_from(topo)
+                
+        def _import_from(self, topo):
+                """ Imports the nodes and edges from the topo
+                """
+                nodemap = {}
+                for node, data in topo.nodes_iter(True):
+                        nodemap[node] = self.addNode("n%d" % node)
+                for u, v, data in topo.edges_iter(None, True):
+                        self.addEdge(nodemap[u], nodemap[v])
