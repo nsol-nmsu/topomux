@@ -39,6 +39,17 @@ class Topology (object):
                                         ret |= set([x for x in list(edge.pair) if x != self])
                         return ret
                 
+                def getDegree(self, filter=None):
+                        """ Returns the number of neighbors
+                        """
+                        return len(self.getNeighbors(filter))
+                
+                def copy(self):
+                        """ Returns a copy of the Node object - edges
+                            will be reset
+                        """
+                        return Topology.Node(self.name, list(self.labels), list(self.prefixes))
+                
                 def __str__(self):
                         """ Returns the name of the node
                         """
@@ -62,14 +73,27 @@ class Topology (object):
                         self.capacity = capacity
                         self.delay = delay
                         self.label = label
-                        a.edges |= set([self])
-                        b.edges |= set([self])
+                        if a != None and b != None:
+                                a.edges |= set([self])
+                                b.edges |= set([self])
 
         def __init__(self):
                 """ Constructor
                 """    
                 self.nodeSet = set()
                 self.edgeSet = set()
+        
+        def copy(self):
+                """ Returns a deep copy of the topology
+                """
+                t = Topology()
+                nodeMapping = {x: x.copy() for x in self.nodeSet}
+                t.nodeSet = set([x for _,x in nodeMapping.items()])
+                for e in self.edgeSet:
+                        i = iter(e.pair)
+                        a, b = nodeMapping[next(i)], nodeMapping[next(i)]
+                        t.addEdge(a, b, capacity=e.capacity, delay=e.delay, label=e.label)
+                return t
         
         def findNode(self, name):
                 """ Returns the node with the given name
@@ -139,6 +163,39 @@ class Topology (object):
                 """ Returns the nodeSet of this graph
                 """
                 return self.nodeSet
+        
+        def getRank(self):
+                """ Returns number of nodes
+                """
+                return len(self.nodeSet)
+        
+        def getMinimumSpanningTree(self):
+                """ Returns a set of edges in a MST of the graph (Prim's
+                    algorithm)
+                """
+                
+                def isCandidate(mstNodes, edge):
+                        """ Helper method: returns True if edge links a node
+                            in mstNodes to a node not in mstNodes
+                        """
+                        i = iter(edge.pair)
+                        a, b = next(i), next(i)
+                        if a in mstNodes and not b in mstNodes:
+                                return True
+                        if b in mstNodes and not a in mstNodes:
+                                return True
+                        return False
+                
+                mstNodes = set([next(iter(self.nodeSet))])
+                mstEdges = set([])
+                while mstNodes != self.nodeSet:
+                        chosenEdge = min((
+                                e for e in self.edgeSet
+                                if isCandidate(mstNodes, e)
+                        ), key=lambda x: x.delay)
+                        mstEdges |= set([chosenEdge])
+                        mstNodes |= chosenEdge.pair
+                return mstEdges
         
 class ImportedTopology (Topology):
         """ Used to import topologies from FNSS or NetworkX. Simply copies
