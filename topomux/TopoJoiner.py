@@ -9,11 +9,14 @@ def preferentialAttachment(topo_list, scalar=1.0, **kwargs):
          
          (scalar/2) * (a.degree + b.degree) / (t1.numEdges + t2.numEdges)
         
-        Each entry in topo_list should be a (name, topo) tuple. The name will
-        be used as the prefix for the nodes in that sub-topology. This is
+        Each entry in topo_list should be a (name, topo, filter) tuple. The name
+        will be used as the prefix for the nodes in that sub-topology. This is
         necessary because two nodes in different topologies may have the same
         name, and there must be no two nodes with the same name in the final
-        generated topology.
+        generated topology. The filter will be used to select nodes which may
+        be candidates for attachment in each graph. The filter should be a set
+        of labels; any nodes with one or more of those labels may be used in
+        attachment. If filter is None, it will be treated as the universal set.
         
         Any extra kwargs provided will be passed to the addEdge function when
         inter-topology links are created.
@@ -21,7 +24,7 @@ def preferentialAttachment(topo_list, scalar=1.0, **kwargs):
         
         # create deep copies of input topos because we will modify the nodes
         # we will also use this dict to map a topology to its prefix
-        t = {x.copy(): n for n,x in topo_list}
+        t = {x.copy(): (n,f) for n,x,f in topo_list}
         
         # create new empty topology, then copy nodes and edges from components
         tm = Topology()
@@ -31,11 +34,15 @@ def preferentialAttachment(topo_list, scalar=1.0, **kwargs):
         # add prefixes to node names
         for c in t:
                 for a in c.nodeSet:
-                        a.name = t[c] + "_" + a.name
+                        a.name = t[c][0] + "_" + a.name
         
         # returns the probability that a, b should have an edge based on the
         # degrees of a and b and total edges in t1 and t2
         def p(a, b, t1, t2):
+                if t[t1][1] != None and t[t1][1] & a.labels == set():
+                        return 0.0
+                if t[t2][1] != None and t[t2][1] & b.labels == set():
+                        return 0.0
                 return scalar/2.0 * (a.getDegree() + b.getDegree()) / (len(t1.edgeSet) + len(t2.edgeSet))
         
         # add edge with probability p for each pair of nodes (a, b)
