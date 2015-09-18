@@ -54,7 +54,7 @@ class IcnRoutes (object):
                 # if a node serves a prefix, it can reach that prefix in zero hops
                 for node in self.topo.getNodes():
                         for prefix in node.prefixes:
-                                self.hops[node][prefix] = (None, 0)
+                                self.hops[node][prefix] = (None, 0.0)
                 
                 # visit each node and propagate its prefix to its neighbors
                 change = True
@@ -62,7 +62,7 @@ class IcnRoutes (object):
                         change = False
                         for a in self.hops:
                                 for p, (face, dist) in self.hops[a].items():
-                                        for b in a.getNeighbors(self.getRestriction(p)):
-                                                if dist != None and (self.hops[b][p][1] == None or self.hops[b][p][1] > dist + 1):
-                                                        self.hops[b][p] = (a, dist + 1)
+                                        for b, delay in a.getNeighbors(self.getRestriction(p), delay=True, penalty=1000.0).items():
+                                                if dist != None and (self.hops[b][p][1] == None or self.hops[b][p][1] > dist + delay):
+                                                        self.hops[b][p] = (a, dist + delay)
                                                         change = True
