@@ -1,25 +1,61 @@
-from topomux import Topology, IcnRoutes
+from topomux import Topology, ImportedTopology, IcnRoutes, TopoJoiner
 from pprint import pprint
+import random
+import networkx as nx
+import fnss.topologies as ft
 
 def main():
-        t = Topology()
-        
-        a = t.addNode(name='a')
-        b = t.addNode(name='b')
-        c = t.addNode(name='c')
-        
-        t.addEdge(a, b, label="any")
-        t.addEdge(b, c, label="any")
-        t.addEdge(a, c, label="foo")
-        
-        a.addPrefix("/foo/bar")
-        a.addPrefix("/bar/baz")
 
-        r = IcnRoutes(t)
-        r.restrictPrefix("/bar", ["any"])
-        r.restrictPrefix("/foo", ["any", "foo"])
+        # build computation layer
+        compute = ImportedTopology(ft.datacenter.fat_tree_topology(4))
+        compute.prefixAllNodes("/direct/com")
+        compute.prefixAllNodes("/overlay/com")
+        compute.labelAllNodes("compute")
+        compute.labelAllEdges("compute")
+
+        # build aggregation layer
+        aggrega = ImportedTopology(ft.randmodels.barabasi_albert_topology(64, 2, 8))
+        aggrega.prefixAllNodes("/direct/agg")
+        aggrega.prefixAllNodes("/overlay/agg")
+        aggrega.labelAllNodes("aggregate")
+        aggrega.labelAllEdges("normal")
         
+        # make MST edges in the aggration layer the overlay graph
+        for edge in aggrega.getMinimumSpanningTree():
+                edge.label = "overlay"
+        
+        # join the aggregation and computation layers
+        joined = TopoJoiner.preferentialAttachment([
+                ("com", compute, None),
+                ("agg", aggrega, None),
+        ], label="overlay", scalar=0.5)
+        
+        # create ordering of aggregation nodes based on degree
+        # we will connect physical nodes to the low-degree (i.e., edge)
+        # aggregate nodes
+        agg_nodes = sorted([x for x in joined.nodeSet if "aggregate" in x.labels], key=lambda x: x.getDegree())
+        
+        # introduce physical layer
+        for i in xrange(0, 100):
+                # create phy node
+                n = joined.addNode("phy_%d" % i, labels=["physical"])
+                n.addPrefix("/overlay/phy/%s" % n.name)
+
+                # choose agg node to connect to
+                a = agg_nodes[int(pow(random.random(), 2) * len(agg_nodes))]
+                joined.addEdge(n, a, label="overlay")
+        
+        # compute routes
+        r = IcnRoutes(joined)
+        r.restrictPrefix("/direct", ["normal", "overlay"])
+        r.restrictPrefix("/overlay", ["overlay"])
+        
+        # ensure all prefixes are reachable from all nodes
         r.calculateRoutes()
-        pprint(r.hops)
+        for node, pd in r.hops.items():
+                for prefix, (face, hops) in pd.items():
+                        if hops == None:
+                                print("%s can't reach %s" % (node, prefix))
+                        #print("%s -> %s : %s : %f" % (node, prefix, face, hops))
 
 main()
