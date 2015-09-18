@@ -30,13 +30,25 @@ class Topology (object):
                         """
                         self.prefixes |= set([prefix])
                 
-                def getNeighbors(self, filter=None):
+                def getNeighbors(self, filter=None, delay=False, penalty=float('+inf')):
                         """ Returns a set containing the neighbors of this node
                         """
+                        
                         ret = set()
                         for edge in self.edges:
                                 if filter == None or edge.label in filter:
                                         ret |= set([x for x in list(edge.pair) if x != self])
+                        
+                        if delay:
+                                ret = {
+                                        n: next(x for x in self.edges if x.pair & set([n]) != set()).delay
+                                        for n in ret
+                                }
+                                for edge in self.edges:
+                                        other_node = next(x for x in edge.pair if x != self)
+                                        if not other_node in ret:
+                                                ret[other_node] = edge.delay + penalty
+                                
                         return ret
                 
                 def getDegree(self, filter=None):
