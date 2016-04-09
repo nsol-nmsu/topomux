@@ -89,9 +89,10 @@ class Topology (object):
                                 a.edges |= set([self])
                                 b.edges |= set([self])
 
+
         def __init__(self):
                 """ Constructor
-                """    
+                """
                 self.nodeSet = set()
                 self.edgeSet = set()
         
@@ -175,6 +176,11 @@ class Topology (object):
                 """ Returns the nodeSet of this graph
                 """
                 return self.nodeSet
+
+	def getEdges(self):
+                """ Returns the edgeSet of this graph
+                """
+                return self.edgeSet
         
         def getRank(self):
                 """ Returns number of nodes
@@ -208,13 +214,58 @@ class Topology (object):
                         mstEdges |= set([chosenEdge])
                         mstNodes |= chosenEdge.pair
                 return mstEdges
+
+
+	def ExportTopology(self):
+		""" Exports the network topology to a file
+                """
+
+		"""Store all nodes in array in order to assign IDs to be used for edges export
+		"""
+		nodes = []
+		for nd in self.getNodes():
+			nodes.append(str(nd))
+
+		"""Export nodes names with their IDs to file
+		"""
+		print "Exporting nodes to file (icens-nodes.txt) !!!!!"
+		fn = open("icens-nodes.txt","w")
+		for i in range(0,len(nodes)):
+			fn.write(str(i) + " " + nodes[i] + " " + self.NodeType(nodes[i]) + "\n")
+		fn.close()
+
+		"""Export edges to same file
+		"""
+		print "Exporting edges to file (icens-edges.txt) !!!!!"
+		fe = open("icens-edges.txt","w")
+		for ne in self.getEdges():
+			elist = (list(ne.pair).__str__().replace('[','').replace(']','').replace(',','')).split()
+			fe.write(str(nodes.index(elist[0])) + " " + str(nodes.index(elist[1])) + " " + str(ne.capacity) + " " + str(ne.delay) + " " + str(ne.label) + "\n")
+
+		fe.close()
+
+		return nodes			
+
+
+	def NodeType(self,name):
+		"""Determine which layer of the graph a node belongs to
+		"""
+		if name[0:3] == "agg":
+			return "aggregation";
+		elif name[0:3] == "com":
+			return "compute"
+		elif name[0:3] == "phy":
+			return "physical"
+		else:
+			return "unknown" 		
+
         
 class ImportedTopology (Topology):
         """ Used to import topologies from FNSS or NetworkX. Simply copies
             the nodes and edges; does not import the data of nodes or
             edges.
         """
-        
+
         def __init__(self, topo):
                 """ Constructor.
                     topo should be a NetworkX Graph object, or some other
@@ -222,7 +273,8 @@ class ImportedTopology (Topology):
                 """
                 super(ImportedTopology, self).__init__()
                 self._import_from(topo)
-                
+           	self.topolo = topo
+     
         def _import_from(self, topo):
                 """ Imports the nodes and edges from the topo
                 """
@@ -231,3 +283,7 @@ class ImportedTopology (Topology):
                         nodemap[node] = self.addNode(name=("n%d" % node))
                 for u, v, data in topo.edges_iter(None, True):
                         self.addEdge(nodemap[u], nodemap[v])
+
+	def _export_topo(self):
+		self.ExportTopology(self.topolo)
+		print self.topolo	

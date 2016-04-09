@@ -32,13 +32,13 @@ class IcnName (object):
                 
 
 class IcnRoutes (object):
-        
+	        
         def __init__(self, topo):
                 self.topo = topo
                 self.prefixes = topo.getPrefixes()
                 self.hops = {t: {p: (None, None) for p in self.prefixes} for t in topo.getNodes()}
                 self.restrict = {}
-        
+     
         def restrictPrefix(self, prefix, labels):
                 self.restrict[prefix] = labels
         
@@ -50,7 +50,7 @@ class IcnRoutes (object):
                 return None
         
         def calculateRoutes(self):
-                
+
                 # if a node serves a prefix, it can reach that prefix in zero hops
                 for node in self.topo.getNodes():
                         for prefix in node.prefixes:
@@ -66,3 +66,14 @@ class IcnRoutes (object):
                                                 if dist != None and (self.hops[b][p][1] == None or self.hops[b][p][1] > dist + delay):
                                                         self.hops[b][p] = (a, dist + delay)
                                                         change = True
+
+	def exportroutingtables(self, nodes):
+		# export the routing table for all nodes
+		print "Exporting routing table to file (icens-routing-tables.txt) !!!!!"
+				
+		f = open("icens-routing-tables.txt","w")
+		for n in self.hops:
+			for p, (face, dist) in self.hops[n].items():
+				f.write(str(nodes.index(str(n))) + " " + str(p) + " " +  str( "local" if str(face)=="None" else nodes.index(str(face)) ) + " " + str(dist) + "\n")
+		f.close()
+		

@@ -50,5 +50,6 @@ def preferentialAttachment(topo_list, scalar=1.0, **kwargs):
                 for a, b in itertools.product(t1.nodeSet, t2.nodeSet):
                         if random.random() < p(a, b, t1, t2):
                                 tm.addEdge(a, b, **kwargs)
-                                
+
+                              
         return tm
