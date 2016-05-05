@@ -7,7 +7,8 @@ import fnss.topologies as ft
 def main():
 
         # build computation layer
-        compute = ImportedTopology(ft.datacenter.fat_tree_topology(4))
+        #compute = ImportedTopology(ft.datacenter.fat_tree_topology(4))
+	compute = ImportedTopology(ft.simplemodels.full_mesh_topology(10))
         compute.prefixAllNodes("/direct/com")
         compute.prefixAllNodes("/overlay/com")
         compute.labelAllNodes("compute")
@@ -15,6 +16,7 @@ def main():
 	
         # build aggregation layer
         aggrega = ImportedTopology(ft.randmodels.barabasi_albert_topology(64, 2, 8))
+	#aggrega = ImportedTopology(ft.randmodels.barabasi_albert_topology(100, 2, 10))
         aggrega.prefixAllNodes("/direct/agg")
         aggrega.prefixAllNodes("/overlay/agg")
         aggrega.labelAllNodes("aggregate")
@@ -36,7 +38,8 @@ def main():
         agg_nodes = sorted([x for x in joined.nodeSet if "aggregate" in x.labels], key=lambda x: x.getDegree())
         
         # introduce physical layer
-        for i in xrange(0, 100):
+	for i in xrange(0, 100):
+        #for i in xrange(0, 1000):
                 # create phy node
                 n = joined.addNode("phy_%d" % i, labels=["physical"])
                 n.addPrefix("/overlay/phy/%s" % n.name)

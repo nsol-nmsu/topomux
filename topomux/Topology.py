@@ -283,7 +283,4 @@ class ImportedTopology (Topology):
                         nodemap[node] = self.addNode(name=("n%d" % node))
                 for u, v, data in topo.edges_iter(None, True):
                         self.addEdge(nodemap[u], nodemap[v])
-
-	def _export_topo(self):
-		self.ExportTopology(self.topolo)
-		print self.topolo	
+	
