@@ -32,7 +32,7 @@ class IcnName (object):
                 
 
 class IcnRoutes (object):
-	        
+                
         def __init__(self, topo):
                 self.topo = topo
                 self.prefixes = topo.getPrefixes()
@@ -67,13 +67,13 @@ class IcnRoutes (object):
                                                         self.hops[b][p] = (a, dist + delay)
                                                         change = True
 
-	def exportroutingtables(self, nodes):
-		# export the routing table for all nodes
-		print "Exporting routing table to file (icens-routing-tables.txt) !!!!!"
-				
-		f = open("icens-routing-tables.txt","w")
-		for n in self.hops:
-			for p, (face, dist) in self.hops[n].items():
-				f.write(str(nodes.index(str(n))) + " " + str(p) + " " +  str( "local" if str(face)=="None" else nodes.index(str(face)) ) + " " + str(dist) + "\n")
-		f.close()
-		
+        def exportroutingtables(self, nodes):
+                # export the routing table for all nodes
+                print "Exporting routing table to file (icens-routing-tables.txt) !!!!!"
+                                
+                f = open("icens-routing-tables.txt","w")
+                for n in self.hops:
+                        for p, (face, dist) in self.hops[n].items():
+                                f.write(str(nodes.index(str(n))) + " " + str(p) + " " +  str( "local" if str(face)=="None" else nodes.index(str(face)) ) + " " + str(dist) + "\n")
+                f.close()
+
