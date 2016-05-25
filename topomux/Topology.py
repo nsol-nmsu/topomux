@@ -78,7 +78,7 @@ class Topology (object):
                 and may have a label which classifies the edge.
                 """
 
-                def __init__(self, a, b, capacity=1000.0, delay=2.0, label=None):
+                def __init__(self, a, b, capacity=10.0, delay=2.0, label=None):
                         """ Constructor
                         """
                         self.pair = set([a, b])
